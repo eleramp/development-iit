@@ -50,11 +50,10 @@ make <target>
 | `rl-latest`          |
 | `rl-master`          |
 
-All the images are based on top of `diegoferigo/devenv:nvidia` which optionally support the `nvidia` runtime if specified in the config file.
 
 ## Download the images
 
-Alternatively to building the images, you can download the pre-built versions which are stored in my [dockerhub profile](https://hub.docker.com/u/diegoferigo).
+Alternatively to building the images, you can download the pre-built versions which are stored in my [dockerhub profile](https://hub.docker.com/u/eleramp).
 This repository has a CI pipeline that periodically builds all the images.
 Though, not all tags are pushed to dockerhub.
 
