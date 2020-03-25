@@ -86,11 +86,6 @@ if [[ -f /opt/ros/$ROS_DISTRO/setup.bash ]] ; then
 	unset old_path
 fi
 
-# Load the gazebo environment
-if [[ -f /usr/share/gazebo/setup.sh ]] ; then
-	source /usr/share/gazebo/setup.sh
-fi
-
 # Enable ccache for the user created during runtime
 if [[ $(id -u) -ne 0 && -x $(which ccache) ]] ; then
 	mkdir -p ${HOME}/.ccachebin

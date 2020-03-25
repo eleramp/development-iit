@@ -2,12 +2,12 @@ version: '2.3'
 
 services:
   development:
-    image: "diegoferigo/development:master"
+    image: "eleramp/development:master"
     container_name: "development"
     command: "bash"
     init: true
     environment:
-      - YARP_NAME_SPACE=/dferigo
+      - YARP_NAME_SPACE=/erampone
     ports:
       - 8000:8000
       - 8888:8888
@@ -21,7 +21,7 @@ devenv:
   version: '1.0'
   development:
     user: "dferigo"
-    project_dir: "$HOME/git"
+    project_dir: "$HOME/workspace/phd"
     resources:
       directories:
         - "$HOME/.dockerdot/atom:$HOME/.atom"
@@ -34,11 +34,11 @@ devenv:
         - "$HOME/.dockerdot/bash_history:$HOME/.bash_history"
     gpu: "intel"
     x11: "xauth"
-    matlab:
-      folder: "/opt/MATLAB/R2018a"
+    #matlab:
+    #  folder: "/opt/MATLAB/R2018a"
       # mac: "wlp2s0"
-      dotdir: "$HOME/.dockerdot/matlab:$HOME/.matlab:rw"
+     # dotdir: "$HOME/.dockerdot/matlab:$HOME/.matlab:rw"
     gdb: true
     git:
-      username: "Diego Ferigo"
-      email: "diego.ferigo@iit.it"
+      username: "Elena Rampone"
+      email: "elena.rampone@iit.it"

@@ -6,13 +6,13 @@ FROM ${from}
 # ARG VCS_REF
 # ARG VERSION=0.9
 LABEL \
-    maintainer="Diego Ferigo <dgferigo@gmail.com>" \
+    maintainer="Elena Rampone <elena.rampone18@gmail.com>" \
     # org.label-schema.build-date=$BUILD_DATE \
     org.label-schema.name="tools-cpp" \
     org.label-schema.description="" \
-    org.label-schema.url="https://github.com/diegoferigo/development-iit" \
+    org.label-schema.url="https://github.com/eleramp/development-iit" \
     # org.label-schema.vcs-ref=$VCS_REF \
-    org.label-schema.vcs-url="https://github.com/diegoferigo/development-iit" \
+    org.label-schema.vcs-url="https://github.com/eleramp/development-iit" \
     # org.label-schema.vendor="" \
     # org.label-schema.version=$VERSION \
     org.label-schema.schema-version="1.0"
@@ -180,78 +180,12 @@ RUN apt-get update &&\
     cmake --build . --target install &&\
     rm -r /tmp/rr
 
-# SWIG with Matlab / Octave support
-# ... waiting its upstream merge
-RUN apt-get update &&\
-    apt-get install -y --no-install-recommends \
-        autotools-dev \
-        automake \
-        bison \
-        libpcre3-dev &&\
-    rm -rf /var/lib/apt/lists/* &&\
-    cd /tmp/ &&\
-    git clone --depth 1 -b matlab https://github.com/robotology-dependencies/swig.git &&\
-    cd swig &&\
-    sh autogen.sh &&\
-    CC=clang-${CLANG_VER} CXX=clang++-${CLANG_VER} ./configure &&\
-    make -j2 &&\
-    make install &&\
-    rm -r /tmp/swig
-
-# IWYU
-RUN apt-get update &&\
-    apt-get install -y --no-install-recommends \
-        libncurses5-dev \
-        libz-dev \
-        &&\
-    rm -rf /var/lib/apt/lists/* &&\
-    cd /tmp &&\
-    git clone https://github.com/include-what-you-use/include-what-you-use.git &&\
-    cd include-what-you-use &&\
-    git checkout clang_${CLANG_VER}.0 &&\
-    mkdir build && cd build &&\
-    cmake .. \
-          -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DIWYU_LLVM_ROOT_PATH=/usr/lib/llvm-${CLANG_VER} &&\
-    cmake --build . --target install &&\
-    rm -r /tmp/include-what-you-use
-
 # Extra tools
-ARG BAT_VERSION=0.12.1
-ARG STARSHIP_VERSION=0.33.1
 RUN \
-    mkdir /opt/extra && cd /opt/extra &&\
-    # https://github.com/junegunn/fzf
-    git clone --depth 1 https://github.com/junegunn/fzf &&\
-    yes | ./fzf/install --no-update-rc &&\
-    mv ~/.fzf.bash /opt/extra/fzf.bash &&\
-    echo "[ -f /opt/extra/fzf.bash ] && source /opt/extra/fzf.bash" >> /etc/bash.bashrc &&\
-    # https://github.com/sharkdp/bat
-    wget https://github.com/sharkdp/bat/releases/download/v${BAT_VERSION}/bat_${BAT_VERSION}_amd64.deb &&\
-    dpkg -i bat_*_amd64.deb && rm bat_*_amd64.deb &&\
-    # https://github.com/jonas/tig
-    git clone --depth 1 https://github.com/jonas/tig &&\
-    cd tig && make install prefix=/usr/local && cd .. && rm -r tig &&\
-    # https://github.com/nvbn/thefuck
-    pip3 install thefuck &&\
-    echo '[ -x /usr/local/bin/thefuck ] && eval $(thefuck --alias)' >> /etc/bash.bashrc &&\
     # Enable bash completion
     LINESTART=$(grep -nr "if ! shopt -oq posix; then" /etc/bash.bashrc | cut -d : -f1) &&\
     LINEEND=$((LINESTART+6)) &&\
-    sed -i "$LINESTART,$LINEEND s/#*//" /etc/bash.bashrc &&\
-    # https://github.com/starship/starship
-    apt-get update &&\
-    apt-get install -y --no-install-recommends fonts-powerline &&\
-    rm -rf /var/lib/apt/lists/* &&\
-    wget https://github.com/starship/starship/releases/download/v${STARSHIP_VERSION}/starship-x86_64-unknown-linux-gnu.tar.gz &&\
-    tar -xvf starship-x86_64-unknown-linux-gnu.tar.gz &&\
-    rm -r starship-x86_64-unknown-linux-gnu.tar.gz &&\
-    echo '[ -x /opt/extra/starship ] && eval "$(/opt/extra/starship init bash)"' >> /etc/bash.bashrc &&\
-    # https://github.com/rupa/z
-    # Always keep this entry as last one
-    wget https://raw.githubusercontent.com/rupa/z/master/z.sh &&\
-    echo "[ -f /opt/extra/z.sh ] && . /opt/extra/z.sh" >> /etc/bash.bashrc
+    sed -i "$LINESTART,$LINEEND s/#*//" /etc/bash.bashrc
 
 # Some QT-Apps/Gazebo don't show controls without this
 ENV QT_X11_NO_MITSHM=1

@@ -33,7 +33,3 @@ fi
 # Change the permissions of .local and .config
 [ -d /home/${USERNAME}/.local ] && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.local
 [ -d /home/${USERNAME}/.config ] && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.config
-
-# Configure YARP namespace
-echo "==> Setting YARP namespace"
-su -c "${IIT_INSTALL}/bin/yarp namespace ${YARP_NAME_SPACE:-/$USERNAME}" $USERNAME

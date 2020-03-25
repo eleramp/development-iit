@@ -6,8 +6,8 @@ default: latest intel nvidia
 
 tools:
 	docker build --rm \
-	--build-arg from=diegoferigo/devenv:nvidia \
-	--tag diegoferigo/tools \
+	--build-arg from=diegoferigo/devenv:intel \
+	--tag eleramp/tools \
 	Tools/
 
 # ===========
@@ -15,12 +15,12 @@ tools:
 # ===========
 
 development-latest: development-master
-	docker tag diegoferigo/development:master diegoferigo/development:latest
+	docker tag eleramp/development:master eleramp/development:latest
 
 development-master:
 	docker build --rm \
-		--build-arg from=diegoferigo/tools \
-		--tag diegoferigo/development:master \
+		--build-arg from=eleramp/tools \
+		--tag eleramp/development:master \
 		--build-arg SOURCES_GIT_BRANCH=master \
 		Development/
 
@@ -29,38 +29,38 @@ development-master:
 # ======================
 
 rl-latest: rl-master
-	docker tag diegoferigo/rl:master diegoferigo/rl:latest
+	docker tag eleramp/rl:master eleramp/rl:latest
 
 rl-master:
 	docker build --rm \
-		--build-arg from=diegoferigo/development:master \
-		--tag diegoferigo/rl:master \
+		--build-arg from=eleramp/development:master \
+		--tag eleramp/rl:master \
 		RL/
 
 rl-ubuntu:
 	docker build --rm \
 		--build-arg from=ubuntu:bionic \
-		--tag diegoferigo/rl:ubuntu \
+		--tag eleramp/rl:ubuntu \
 		RL/
 
 # ======
 # DEPLOY
 # ======
 
-push-tools: tools
-	docker push diegoferigo/tools
+# push-tools: tools
+# 	docker push eleramp/tools
 
-push-development-latest: development-latest
-	docker push diegoferigo/development:latest
+# push-development-latest: development-latest
+# 	docker push eleramp/development:latest
 
-push-development-master: development-master
-	docker push diegoferigo/development:master
+# push-development-master: development-master
+# 	docker push eleramp/development:master
 
-push-rl-latest: rl-latest
-	docker push diegoferigo/rl:latest
+# push-rl-latest: rl-latest
+# 	docker push eleramp/rl:latest
 
-push-rl-master: rl-master
-	docker push diegoferigo/rl:master
+# push-rl-master: rl-master
+# 	docker push eleramp/rl:master
 
-push-rl-ubuntu: rl-ubuntu
-	docker push diegoferigo/rl:ubuntu
+# push-rl-ubuntu: rl-ubuntu
+# 	docker push eleramp/rl:ubuntu
