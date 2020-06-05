@@ -2,7 +2,7 @@ version: '2.3'
 
 services:
   rl:
-    image: "eleramp/rl:master"
+    image: "eleramp/rl:nvidia"
     container_name: "rl"
     command: "bash"
     init: true
@@ -20,8 +20,8 @@ services:
 devenv:
   version: '1.0'
   rl:
-    user: "erampone"
-    project_dir: "$HOME/workspace/phd"
+    user: "r1-user"
+    project_dir: "$HOME/elena_ws/git_repos"
     resources:
       directories:
         - "$HOME/.dockerdot/atom:$HOME/.atom"
@@ -33,7 +33,7 @@ devenv:
         - "$HOME/.dockerdot/cache:$HOME/.cache"
       files:
         - "$HOME/.dockerdot/bash_history:$HOME/.bash_history"
-    gpu: "intel"
+    gpu: "nvidia"
     x11: "xauth"
     # matlab:
     #   folder: "/opt/MATLAB/R2018a"

@@ -29,6 +29,8 @@ ENV CXX="g++-8"
 
 # Common tools
 RUN apt-get update &&\
+    export DEBIAN_FRONTEND=noninteractive &&\
+    export DEBCONF_NONINTERACTIVE_SEEN=true &&\
     apt-get install -y --no-install-recommends \
         apt-transport-https \
         ca-certificates \
@@ -61,6 +63,10 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
         mercurial \
         python3-pip \
         xvfb \
+        python-setuptools \
+        python3-setuptools \
+        libpython-dev \
+        libpython3-dev \
         &&\
     rm -rf /var/lib/apt/lists/*
 
@@ -88,20 +94,25 @@ RUN groupadd runtimeusers || true
 
 ENV VIRTUAL_ENV=/rl/ve
 ENV DEVENV_PATH=${VIRTUAL_ENV}/bin:$DEVENV_PATH
-RUN pip3 install virtualenv &&\
-    virtualenv ${VIRTUAL_ENV} &&\
+RUN pip3 install urllib3 && pip3 install virtualenv
+
+RUN virtualenv ${VIRTUAL_ENV} &&\
     ${VIRTUAL_ENV}/bin/pip3 install \
-        gym==0.12.5 \
+	setuptools \
+        gym \
         pybullet \
         matplotlib \
         pandas \
         ruamel.yaml \
-        tensorflow==1.14 \
-        stable_baselines==2.9.0 \
+        tensorflow==1.* \
+        stable_baselines \
         numpy \
         numpy-quaternion \
         trimesh \
         seaborn \
+        baselines \
+        imageio \
+        mpi4py \
         &&\
     #${VIRTUAL_ENV}/bin/pip3 install git+https://github.com/tensorflow/agents &&\#
     #${VIRTUAL_ENV}/bin/pip3 install --upgrade --force-reinstall tb-nightly &&\#
@@ -129,6 +140,12 @@ RUN apt-get update &&\
     ln -s /opt/pycharm/bin/pycharm.sh /usr/local/bin/pycharm
 
 
+# Install git-lfs
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash && \
+    sudo apt-get install git-lfs &&\
+    git lfs install
+
+
 # =======================
 # Install projects for RL
 # =======================
@@ -153,12 +170,15 @@ RUN cd ${RL_SOURCES} &&\
     find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
     find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
-# Install ycb-objects-models-sim
+# Install pybullet-object-models
 RUN cd ${RL_SOURCES} &&\
-    git clone https://github.com/eleramp/ycb-objects-models-sim.git &&\
-    cd ycb-objects-models-sim && ${VIRTUAL_ENV}/bin/pip3 install -e . &&\
+    git clone https://github.com/eleramp/pybullet-object-models.git &&\
+    cd pybullet-object-models && ${VIRTUAL_ENV}/bin/pip3 install -e . &&\
+    cd ${RL_SOURCES}/pybullet-object-models/pybullet_object_models/superquadric_objects/ &&\
+    ${VIRTUAL_ENV}/bin/python generate_urdf_model.py &&\
+    ${VIRTUAL_ENV}/bin/python generate_dataset.py && \
     find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
-    find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
+    find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ 
 
 # Install icub-model-pybullet
 RUN cd ${RL_SOURCES} &&\
@@ -166,6 +186,7 @@ RUN cd ${RL_SOURCES} &&\
     cd icub-model-pybullet && ${VIRTUAL_ENV}/bin/pip3 install -e . &&\
     find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
     find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
+
 
 
 # =============

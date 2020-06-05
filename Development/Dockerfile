@@ -95,66 +95,26 @@ ARG IIT_BIN=${IIT_INSTALL}/bin
 # Use docker cache for steps above
 ARG IIT_DOCKER_SOURCES="20200217"
 
-ENV CC=clang-${CLANG_VER}
-ENV CXX=clang++-${CLANG_VER}
-
-# LIBFRANKA
-RUN mkdir -p ${IIT_SOURCES} &&\
-    cd ${IIT_SOURCES} &&\
-    git clone --recursive https://github.com/frankaemika/libfranka && \
-    cd libfranka && \
-    mkdir -p build && cd build && \
-    cmake \
-    -DCMAKE_INSTALL_PREFIX=${IIT_INSTALL} \
-    -DCMAKE_BUILD_TYPE=Release .. && \
-    cmake --build . --target install -j8 &&\
-    find ${IIT_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
-    find ${IIT_INSTALL} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
-
-
-# FRANKA_ROS
-RUN /bin/bash -c "apt-get update &&\
-    mkdir -p ${CATKIN_WS_DIR}/src && \
-    cd ${CATKIN_WS_DIR} && \
-    source /opt/ros/${ROS_DISTRO}/setup.sh && \
-    catkin_init_workspace src && \
-    git clone --recursive https://github.com/frankaemika/franka_ros src/franka_ros && \
-    rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y --skip-keys libfranka && \
-    catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release -DFranka_DIR:PATH=${IIT_SOURCES}/libfranka/build &&\
-    catkin build &&\
-    find ${CATKIN_WS_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
-    echo 'source ${CATKIN_WS_DIR}/devel/setup.sh' >> /etc/bash.bashrc"
-
-
-# MOVE-IT
-RUN /bin/bash -c "apt-get update &&\
-    apt-get install -y libomp-dev &&\
-    cd ${CATKIN_WS_DIR} && \
-    source /opt/ros/$ROS_DISTRO/setup.bash && \
-    wstool init src && \
-    wstool merge -t src https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall && \
-    wstool update -t src &&\
-    rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} &&\
-    catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release &&\
-    catkin config --blacklist \
-            moveit_ros_robot_interaction \
-            moveit_ros_benchmarks \
-            moveit_controller_manager_example \
-            moveit_ros_perception \
-            moveit_ros_manipulation \
-            moveit_ros_warehouse &&\
-    catkin build moveit &&\
-    find ${CATKIN_WS_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
-    echo 'source ${CATKIN_WS_DIR}/devel/setup.bash' >> /etc/bash.bashrc"
-
-# Install superquadric-lib and its dependencies: VTK, ipopt, SWIG
-# ==========================================
-
 ENV CC="gcc-8"
 ENV CXX="g++-8"
 
+# Libs to control Panda robot
+# ===========================
+
+
+RUN apt-get update &&\
+    apt install -y --no-install-recommends \
+        ros-${ROS_DISTRO}-libfranka \
+        ros-${ROS_DISTRO}-franka-ros \
+        ros-melodic-moveit &&\
+    rm -rf /var/lib/apt/lists/*
+
+
+# Install superquadric-lib and its dependencies: VTK, ipopt, SWIG
+# ===============================================================
+
 # VTK
-RUN cd ${IIT_SOURCES} &&\
+RUN mkdir -p ${IIT_SOURCES} && cd ${IIT_SOURCES} &&\
     git clone https://gitlab.kitware.com/vtk/vtk.git && \
     cd vtk && git checkout tags/v8.2.0 &&\
     mkdir -p build && cd build && \
@@ -191,7 +151,7 @@ RUN cd ${IIT_SOURCES} &&\
     make install &&\
     rm -r ${IIT_SOURCES}/swig-4.0.1
 
-# COPY FindIPOPT.cmake ${IIT_SOURCES}/superquadric-lib/src/SuperquadricLib/SuperquadricModel/cmake/FindIPOPT.cmake
+COPY FindIPOPT.cmake ${IIT_SOURCES}/superquadric-lib/src/SuperquadricLib/SuperquadricModel/cmake/FindIPOPT.cmake
 
 # Install superquadric-lib
 RUN mv ${IIT_INSTALL}/include/coin-or/ ${IIT_INSTALL}/include/coin/ && \

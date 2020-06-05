@@ -170,15 +170,24 @@ RUN apt-get update &&\
         git \
         ninja-build \
         capnproto \
-        libcapnp-dev &&\
-    rm -rf /var/lib/apt/lists/* &&\
-    cd /tmp &&\
-    git clone --depth 1 https://github.com/mozilla/rr.git &&\
-    cd rr && mkdir build && cd build &&\
-    CC=clang-${CLANG_VER} CXX=clang++-${CLANG_VER} cmake -G Ninja .. &&\
-    cmake --build . &&\
-    cmake --build . --target install &&\
-    rm -r /tmp/rr
+        libcapnp-dev \
+	policykit-1 &&\
+    rm -rf /var/lib/apt/lists/*
+
+## Atom
+ARG ATOM_VERSION=v1.40.1
+ARG ATOM_PKG_TMP=/tmp/atom_packages.txt
+
+RUN curl -L https://github.com/atom/atom/releases/download/${ATOM_VERSION}/atom-amd64.deb > /tmp/atom.deb && \
+    dpkg -i /tmp/atom.deb && \
+    rm -f /tmp/atom.deb && \
+    echo "tool-bar" >> ${ATOM_PKG_TMP} &&\
+    echo "indent-detective" >> ${ATOM_PKG_TMP} &&\
+    echo "latex-completions" >> ${ATOM_PKG_TMP} &&\
+    echo "hyperclick" >> ${ATOM_PKG_TMP} &&\ 
+    apm install --packages-file ${ATOM_PKG_TMP} &&\
+    cp -r /root/.atom /opt/dotatom &&\
+    find /opt/dotatom -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
 # Extra tools
 RUN \

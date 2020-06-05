@@ -2,7 +2,7 @@ version: '2.3'
 
 services:
   tools:
-    image: "eleramp/tools"
+    image: "eleramp/tools:nvidia"
     container_name: "tools"
     command: "bash"
     init: true
@@ -15,8 +15,8 @@ services:
 devenv:
   version: '1.0'
   tools:
-    user: "erampone"
-    gpu: "intel"
+    user: "r1-user"
+    gpu: "nvidia"
     x11: "xauth"
     #matlab:
     #  folder: "/usr/local/MATLAB/R2018a"

@@ -1,4 +1,4 @@
-default: latest intel nvidia
+#default: latest intel nvidia
 
 # =====
 # TOOLS
@@ -6,21 +6,28 @@ default: latest intel nvidia
 
 tools:
 	docker build --rm \
-	--build-arg from=diegoferigo/devenv:intel \
-	--tag eleramp/tools \
+	--build-arg from=diegoferigo/devenv:nvidia \
+	--tag eleramp/tools:nvidia \
 	Tools/
 
 # ===========
 # DEVELOPMENT
 # ===========
 
-development-latest: development-master
-	docker tag eleramp/development:master eleramp/development:latest
+#development-latest: development-master
+#	docker tag eleramp/development:master eleramp/development:latest
 
-development-master:
+#development-master:
+#	docker build --rm \
+#		--build-arg from=eleramp/tools \
+#		--tag eleramp/development:master \
+#		--build-arg SOURCES_GIT_BRANCH=master \
+#		Development/
+
+development-nvidia:
 	docker build --rm \
-		--build-arg from=eleramp/tools \
-		--tag eleramp/development:master \
+		--build-arg from=eleramp/tools:latest \
+		--tag eleramp/development:nvidia \
 		--build-arg SOURCES_GIT_BRANCH=master \
 		Development/
 
@@ -28,19 +35,25 @@ development-master:
 # REINFORCEMENT LEARNING
 # ======================
 
-rl-latest: rl-master
-	docker tag eleramp/rl:master eleramp/rl:latest
+#rl-latest: rl-master
+#	docker tag eleramp/rl:master eleramp/rl:latest
 
-rl-master:
-	docker build --rm \
-		--build-arg from=eleramp/development:master \
-		--tag eleramp/rl:master \
-		RL/
+#rl-master:
+#	docker build --rm \
+#		--build-arg from=eleramp/development:master \
+#		--tag eleramp/rl:master \
+#		RL/
 
-rl-ubuntu:
+#rl-ubuntu:
+#	docker build --rm \
+#		--build-arg from=ubuntu:bionic \
+#		--tag eleramp/rl:ubuntu \
+#		RL/
+
+rl-nvidia:
 	docker build --rm \
-		--build-arg from=ubuntu:bionic \
-		--tag eleramp/rl:ubuntu \
+		--build-arg from=eleramp/development:nvidia \
+		--tag eleramp/rl:nvidia \
 		RL/
 
 # ======
