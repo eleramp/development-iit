@@ -1,14 +1,11 @@
 version: '2.3'
 
 services:
-  rl:
-    image: "eleramp/rl:nvidia-10.0"
-    container_name: "rl"
-    shm_size: '50gb'
+  gpd:
+    image: "nvidia_gpd:latest"
+    container_name: "gpd"
     command: "bash"
     init: true
-    environment:
-      - YARP_NAME_SPACE=/erampone
     ports:
       - 8000:8000
       - 8888:8888
@@ -21,8 +18,8 @@ services:
 devenv:
   version: '1.0'
   rl:
-    user: r1-user
-    project_dir: "$HOME/elena_ws/git_repos"
+    user: "r1-user"
+    project_dir: "$HOME/elena_ws/heap"
     resources:
       directories:
         - "$HOME/.dockerdot/atom:$HOME/.atom"
@@ -36,10 +33,6 @@ devenv:
         - "$HOME/.dockerdot/bash_history:$HOME/.bash_history"
     gpu: "nvidia"
     x11: "xauth"
-    # matlab:
-    #   folder: "/opt/MATLAB/R2018a"
-    #   # mac: "wlp2s0"
-    #   dotdir: "$HOME/.dockerdot/matlab:$HOME/.matlab:rw"
     gdb: true
     git:
       username: "Elena Rampone"

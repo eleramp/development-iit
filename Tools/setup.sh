@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu -o pipefail 
+set -eu -o pipefail
 
 if [ ! -x "$(which setup_devenv.sh)" ] ; then
     echo "==> File setup_devenv.sh not found."
@@ -35,5 +35,7 @@ if [[ ${COPY_ATOM_PACKAGES} -eq 1 && -d "/root/.atom" ]] ; then
 fi
 
 # Enable colors in nanorc
-echo "include /usr/share/nano/*.nanorc" > /home/$USERNAME/.nanorc
-chown $USERNAME:$USERNAME /home/$USERNAME/.nanorc
+if [ ! -f /home/$USERNAME/.nanorc ] ; then
+    echo "include /usr/share/nano/*.nanorc" > /home/$USERNAME/.nanorc
+    chown $USERNAME:$USERNAME /home/$USERNAME/.nanorc
+fi

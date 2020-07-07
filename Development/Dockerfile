@@ -1,22 +1,6 @@
 ARG from=eleramp/tools:latest
 FROM ${from}
 
-# Build-time metadata as defined at http://label-schema.org
-# ARG BUILD_DATE
-# ARG VCS_REF
-# ARG VERSION=0.9
-LABEL \
-    maintainer="Elena Rampone <elena.rampone18@gmail.com>" \
-    # org.label-schema.build-date=$BUILD_DATE \
-    org.label-schema.name="development" \
-    org.label-schema.description="" \
-    org.label-schema.url="https://github.com/eleramp/development-iit" \
-    # org.label-schema.vcs-ref=$VCS_REF \
-    org.label-schema.vcs-url="https://github.com/eleramp/development-iit" \
-    # org.label-schema.vendor="" \
-    # org.label-schema.version=$VERSION \
-    org.label-schema.schema-version="1.0"
-
 # Install ROS Desktop Full
 # ========================
 
@@ -106,7 +90,7 @@ RUN apt-get update &&\
     apt install -y --no-install-recommends \
         ros-${ROS_DISTRO}-libfranka \
         ros-${ROS_DISTRO}-franka-ros \
-        ros-melodic-moveit &&\
+        ros-${ROS_DISTRO}-moveit &&\
     rm -rf /var/lib/apt/lists/*
 
 
@@ -128,6 +112,15 @@ RUN mkdir -p ${IIT_SOURCES} && cd ${IIT_SOURCES} &&\
     rm -rf ${IIT_SOURCES}/vtk &&\
     find ${IIT_INSTALL} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
+# SWIG
+RUN cd ${IIT_SOURCES} &&\
+    curl https://netcologne.dl.sourceforge.net/project/swig/swig/swig-4.0.1/swig-4.0.1.tar.gz | tar xvz &&\
+    cd swig-4.0.1 &&\
+    ./configure && \
+    make -j2 &&\
+    make install &&\
+    rm -r ${IIT_SOURCES}/swig-4.0.1
+
 
 # IPOPT
 RUN mkdir -p ${IIT_SOURCES}/ipopt_tmp && cd ${IIT_SOURCES}/ipopt_tmp &&\
@@ -139,25 +132,17 @@ RUN mkdir -p ${IIT_SOURCES}/ipopt_tmp && cd ${IIT_SOURCES}/ipopt_tmp &&\
     rm -rf ${IIT_SOURCES}/ipopt_tmp &&\
     find ${IIT_INSTALL} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
+
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${IIT_INSTALL}/lib
 ENV IPOPT_DIR=${IIT_INSTALL}
 
-# SWIG
-RUN cd ${IIT_SOURCES} &&\
-    curl https://netcologne.dl.sourceforge.net/project/swig/swig/swig-4.0.1/swig-4.0.1.tar.gz | tar xvz &&\
-    cd swig-4.0.1 &&\
-    ./configure && \
-    make -j2 &&\
-    make install &&\
-    rm -r ${IIT_SOURCES}/swig-4.0.1
-
-COPY FindIPOPT.cmake ${IIT_SOURCES}/superquadric-lib/src/SuperquadricLib/SuperquadricModel/cmake/FindIPOPT.cmake
+#COPY FindIPOPT.cmake ${IIT_SOURCES}/superquadric-lib/src/SuperquadricLib/SuperquadricModel/cmake/FindIPOPT.cmake
 
 # Install superquadric-lib
-RUN mv ${IIT_INSTALL}/include/coin-or/ ${IIT_INSTALL}/include/coin/ && \
+RUN cp ${IIT_INSTALL}/include/coin-or/* ${IIT_INSTALL}/include/coin/ && \
     cd ${IIT_SOURCES} &&\
     git clone -b bindings https://github.com/eleramp/superquadric-lib.git && \
-   cd ${IIT_SOURCES}/superquadric-lib &&\
+    cd ${IIT_SOURCES}/superquadric-lib &&\
     mkdir -p build && cd build &&\
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -192,7 +177,7 @@ COPY bashrc-functions /usr/etc/skel/bashrc-functions
 # Include an additional entrypoint script
 COPY entrypoint.sh /usr/sbin/entrypoint_development.sh
 COPY setup.sh /usr/sbin/setup_development.sh
-RUN chmod 755 /usr/sbin/entrypoint_development.sh
-RUN chmod 755 /usr/sbin/setup_development.sh
+RUN chmod 755 /usr/sbin/entrypoint_development.sh && \
+    chmod 755 /usr/sbin/setup_development.sh
 ENTRYPOINT ["/usr/sbin/entrypoint_development.sh"]
 CMD ["bash"]

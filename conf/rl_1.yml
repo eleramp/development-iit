@@ -1,10 +1,9 @@
 version: '2.3'
 
 services:
-  rl:
+  rl_1:
     image: "eleramp/rl:nvidia-10.0"
-    container_name: "rl"
-    shm_size: '50gb'
+    container_name: "rl_1"
     command: "bash"
     init: true
     environment:
@@ -20,8 +19,8 @@ services:
 
 devenv:
   version: '1.0'
-  rl:
-    user: r1-user
+  rl_1:
+    user: "r1-user"
     project_dir: "$HOME/elena_ws/git_repos"
     resources:
       directories:

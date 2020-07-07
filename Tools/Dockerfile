@@ -1,22 +1,6 @@
 ARG from=diegoferigo/devenv:latest
 FROM ${from}
 
-# Build-time metadata as defined at http://label-schema.org
-# ARG BUILD_DATE
-# ARG VCS_REF
-# ARG VERSION=0.9
-LABEL \
-    maintainer="Elena Rampone <elena.rampone18@gmail.com>" \
-    # org.label-schema.build-date=$BUILD_DATE \
-    org.label-schema.name="tools-cpp" \
-    org.label-schema.description="" \
-    org.label-schema.url="https://github.com/eleramp/development-iit" \
-    # org.label-schema.vcs-ref=$VCS_REF \
-    org.label-schema.vcs-url="https://github.com/eleramp/development-iit" \
-    # org.label-schema.vendor="" \
-    # org.label-schema.version=$VERSION \
-    org.label-schema.schema-version="1.0"
-
 # Utilities
 RUN apt-get update &&\
     apt-get install -y --no-install-recommends \
@@ -165,6 +149,8 @@ RUN apt-get update &&\
         g++-multilib \
         gdb \
         pkg-config \
+        libgtk-3-0 \
+        libxss1 \
         python3-pexpect \
         manpages-dev \
         git \
@@ -184,7 +170,7 @@ RUN curl -L https://github.com/atom/atom/releases/download/${ATOM_VERSION}/atom-
     echo "tool-bar" >> ${ATOM_PKG_TMP} &&\
     echo "indent-detective" >> ${ATOM_PKG_TMP} &&\
     echo "latex-completions" >> ${ATOM_PKG_TMP} &&\
-    echo "hyperclick" >> ${ATOM_PKG_TMP} &&\ 
+    echo "hyperclick" >> ${ATOM_PKG_TMP} &&\
     apm install --packages-file ${ATOM_PKG_TMP} &&\
     cp -r /root/.atom /opt/dotatom &&\
     find /opt/dotatom -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+

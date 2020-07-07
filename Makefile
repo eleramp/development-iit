@@ -4,10 +4,10 @@
 # TOOLS
 # =====
 
-tools:
+tools-nvidia:
 	docker build --rm \
-	--build-arg from=diegoferigo/devenv:nvidia \
-	--tag eleramp/tools:nvidia \
+	--build-arg from=eleramp/devenv:nvidia-10.0-devel \
+	--tag eleramp/tools:nvidia-10.0-devel \
 	Tools/
 
 # ===========
@@ -26,7 +26,7 @@ tools:
 
 development-nvidia:
 	docker build --rm \
-		--build-arg from=eleramp/tools:latest \
+		--build-arg from=eleramp/tools:nvidia \
 		--tag eleramp/development:nvidia \
 		--build-arg SOURCES_GIT_BRANCH=master \
 		Development/
@@ -55,6 +55,12 @@ rl-nvidia:
 		--build-arg from=eleramp/development:nvidia \
 		--tag eleramp/rl:nvidia \
 		RL/
+
+gpnet:
+	docker build --rm \
+		--build-arg from=eleramp/tools:nvidia-10.0-devel \
+		--tag eleramp/graspnet:nvidia-10.0-devel \
+		graspnet/
 
 # ======
 # DEPLOY

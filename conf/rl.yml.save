@@ -2,7 +2,8 @@ version: '2.3'
 
 services:
   rl:
-    image: "eleramp/rl:nvidia-10.0"
+    image: "eleramp/rl:nvidia
+"
     container_name: "rl"
     shm_size: '50gb'
     command: "bash"

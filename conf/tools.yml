@@ -2,7 +2,7 @@ version: '2.3'
 
 services:
   tools:
-    image: "eleramp/tools:nvidia"
+    image: "eleramp/tools:nvidia-10.0-devel"
     container_name: "tools"
     command: "bash"
     init: true
