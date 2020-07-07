@@ -1,26 +1,14 @@
 ARG from=diegoferigo/development:nvidia-master
 FROM ${from}
 
-# Build-time metadata as defined at http://label-schema.org
-# ARG BUILD_DATE
-# ARG VCS_REF
-# ARG VERSION=0.9
-LABEL \
-    maintainer="Elena Rampone <elena.rampone18@gmail.com>" \
-    # org.label-schema.build-date=$BUILD_DATE \
-    org.label-schema.name="rl" \
-    org.label-schema.description="" \
-    org.label-schema.url="https://github.com/eleramp/development-iit" \
-    # org.label-schema.vcs-ref=$VCS_REF \
-    org.label-schema.vcs-url="https://github.com/eleramp/development-iit" \
-    # org.label-schema.vendor="" \
-    # org.label-schema.version=$VERSION \
-    org.label-schema.schema-version="1.0"
+
+# Create a new runtimeusers group (it might be already present)
+RUN groupadd runtimeusers || true
 
 ENV RL_DIR=/rl
 ENV RL_INSTALL=${RL_DIR}/local
 ENV RL_SOURCES=${RL_DIR}/sources
-ENV DEVENV_PATH=${RL_INSTALL}/bin:${DEVENV_PATH}
+ENV PATH=${RL_INSTALL}/bin:${PATH}
 ENV CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:${RL_INSTALL}
 ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RL_INSTALL}/lib
 
@@ -48,9 +36,9 @@ RUN apt-get update &&\
         &&\
     rm -rf /var/lib/apt/lists/*
 
-# Development tools
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&\
     apt-add-repository "deb https://apt.kitware.com/ubuntu/ `lsb_release -cs` main" &&\
+    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
     apt-get update &&\
     apt-get install -y --no-install-recommends \
         git \
@@ -67,6 +55,7 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
         python3-setuptools \
         libpython-dev \
         libpython3-dev \
+	nodejs \
         &&\
     rm -rf /var/lib/apt/lists/*
 
@@ -84,16 +73,12 @@ RUN sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen &&\
     apt-get install -y --no-install-recommends tzdata &&\
     rm -rf /var/lib/apt/lists/*
 
-
-# Create a new runtimeusers group (it might be already present)
-RUN groupadd runtimeusers || true
-
 # ===========================
 # Setup the python virtualenv
 # ===========================
 
 ENV VIRTUAL_ENV=/rl/ve
-ENV DEVENV_PATH=${VIRTUAL_ENV}/bin:$DEVENV_PATH
+ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 RUN pip3 install urllib3 && pip3 install virtualenv
 
 RUN virtualenv ${VIRTUAL_ENV} &&\
@@ -104,7 +89,11 @@ RUN virtualenv ${VIRTUAL_ENV} &&\
         matplotlib \
         pandas \
         ruamel.yaml \
-        tensorflow==1.* \
+        #tensorflow==1.15.3 \
+	#tensorflow-gpu==1.15.3 \
+	tensorflow \
+	tensorflow_probability \
+	tensorboardX \
         stable_baselines \
         numpy \
         numpy-quaternion \
@@ -113,6 +102,8 @@ RUN virtualenv ${VIRTUAL_ENV} &&\
         baselines \
         imageio \
         mpi4py \
+	cython==0.29.0 \
+	pytest	\
         &&\
     #${VIRTUAL_ENV}/bin/pip3 install git+https://github.com/tensorflow/agents &&\#
     #${VIRTUAL_ENV}/bin/pip3 install --upgrade --force-reinstall tb-nightly &&\#
@@ -178,7 +169,7 @@ RUN cd ${RL_SOURCES} &&\
     ${VIRTUAL_ENV}/bin/python generate_urdf_model.py &&\
     ${VIRTUAL_ENV}/bin/python generate_dataset.py && \
     find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
-    find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ 
+    find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
 # Install icub-model-pybullet
 RUN cd ${RL_SOURCES} &&\
@@ -187,7 +178,18 @@ RUN cd ${RL_SOURCES} &&\
     find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
     find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
+# Install ray
+RUN ${VIRTUAL_ENV}/bin/pip3 install pip install ray[debug,rllib,tune]
 
+#RUN cd ${RL_SOURCES} &&\
+#    git clone https://github.com/ray-project/ray.git &&\
+#    ray/ci/travis/install-bazel.sh &&\
+#    pushd ray/python/ray/dashboard/client &&\
+#    npm ci && npm run build && popd &&\
+#    cd ray/python &&\
+#    pip install -e . --verbose &&\
+#    find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+ &&\
+#    find ${VIRTUAL_ENV} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec chmod g+rw {} \+
 
 # =============
 # FIX OWNERSHIP
@@ -202,7 +204,9 @@ RUN find ${RL_DIR} -not -group runtimeusers -exec chgrp runtimeusers {} \; -exec
 
 COPY setup.sh /usr/sbin/setup_rl.sh
 COPY entrypoint.sh /usr/sbin/entrypoint_rl.sh
-RUN chmod 755 /usr/sbin/setup_rl.sh
+COPY setup_devenv.sh /usr/sbin/setup_devenv.sh
+RUN chmod 755 /usr/sbin/setup_rl.sh && \
+    chmod 755 /usr/sbin/setup_devenv.sh
 RUN chmod 755 /usr/sbin/entrypoint_rl.sh
 ENTRYPOINT ["/usr/sbin/entrypoint_rl.sh"]
 CMD ["bash"]

@@ -12,4 +12,5 @@ setup_rl.sh
 echo "==> RL container ready"
 
 # If a CMD is passed, execute it
+echo "== execute command $@"
 exec "$@"
